@@ -10,6 +10,7 @@ import com.github.shy526.vo.UserInfo;
 import lombok.extern.slf4j.Slf4j;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 
@@ -63,6 +64,7 @@ public class App {
         String acIdsFileName = "acIds-" + userInfo.getUid() + suffix;
         String postIdsFileName = "postIds-" + userInfo.getUid() + suffix;
         String gameCommentFileName = "gameComment-" + userInfo.getUid() + suffix;
+        String idempotentTime = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
 
 
         deleteGithubFile(gameIdsFileName);
@@ -111,7 +113,7 @@ public class App {
                 if (trueFlag >= userInfo.getMaxGame()) {
                     break;
                 }
-                int code = CaiMoGuH5Help.acGameScore(gamId, "神中神非常好玩", "10", "1");
+                int code = CaiMoGuH5Help.acGameScore(gamId, "神中神非常好玩-"+"通关时间:"+idempotentTime+"死亡次数:"+userInfo.getUid(), "10", "1");
                 if (code == 99999) {
                     acGameIds.add(gamId);
                     log.error("重复评价 " + gamId);
@@ -127,7 +129,8 @@ public class App {
             }
             log.error("成功评价游戏数量:{}", trueFlag);
         }
-
+        int tempPoint = userInfo.getPoint().intValue();
+        log.error("影响力获取:{}",CaiMoGuH5Help.getPoint()-tempPoint);
         String acGameIdsStr = String.join("\n", acGameIds);
         GithubHelp.createOrUpdateFile(acGameIdsStr, acIdsFileName, ownerRepo, githubApiToken);
 
@@ -135,7 +138,8 @@ public class App {
         int acPostNum = CaiMoGuH5Help.getRuleDetail(postIds);
         GithubHelp.createOrUpdateFile(String.join("\n", postIds), postIdsFileName, ownerRepo, githubApiToken);
         log.error("成功评论帖子:{}", acPostNum);
-
+         tempPoint = userInfo.getPoint().intValue();
+        log.error("影响力获取:{}",CaiMoGuH5Help.getPoint()-tempPoint);
 
         Set<String> gameCommentIds = checkAcFileName(gameCommentFileName, replyGroup, "3");
 
@@ -148,9 +152,11 @@ public class App {
                 break;
             }
             gameCommentIds.add(gameId);
-            int i = CaiMoGuH5Help.acGameCommentReply(gameId, "说的全对,确实很好玩");
+            int i = CaiMoGuH5Help.acGameCommentReply(gameId, "说的全对,确实很好玩-"+"通关时间:"+idempotentTime+"死亡次数:"+userInfo.getUid());
             if (i == 0) {
                 log.error("成功评论游戏库评论:{}", gameId);
+                tempPoint = userInfo.getPoint().intValue();
+                log.error("影响力获取:{}",CaiMoGuH5Help.getPoint()-tempPoint);
                 gameCommentNum++;
             }
 
@@ -182,7 +188,7 @@ public class App {
                 log.error("delete  {}", item);
                 continue;
             }
-            if (split[1].equals(uid)) {
+            if (!split[1].equals(uid+".txt")) {
                 GithubHelp.deleteFile(ownerRepo, githubApiToken, item);
                 log.error("delete  {}", item);
             }

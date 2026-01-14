@@ -764,7 +764,6 @@ public class CaiMoGuH5Help {
             if (aesBase64.startsWith("+")) {
                 aesBase64 = aesBase64.replaceFirst("\\+", "%2B");
             }
-
             if (aesBase64.startsWith("/")) {
                 aesBase64 = aesBase64.replaceFirst("/", "%2F");
             }
@@ -784,7 +783,7 @@ public class CaiMoGuH5Help {
         StringBuilder emojiBuilder = new StringBuilder();
         for (int i = 0; i < emojiNum; i++) {
             int num = (int)(Math.random() * 50) + 1;
-            emojiBuilder.append(  String.format(formatHtml,num+""));
+            emojiBuilder.append(  String.format(formatHtml,num+"")).append("　");
         }
         return emojiBuilder.toString();
     }
